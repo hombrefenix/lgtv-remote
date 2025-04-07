@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LG TV Remote</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 140px);
+      gap: 15px;
+    }
+
+    button {
+      background: #222;
+      color: white;
+      border: 2px solid #444;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 16px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #333;
+    }
+
+    @media (max-width: 400px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>LG TV Remote</h1>
+  <!-- Arrow Buttons -->
+	<button onclick="sendKey('up')">⬆️</button>
+	<button onclick="sendKey('down')">⬇️</button>
+	<button onclick="sendKey('left')">⬅️</button>
+	<button onclick="sendKey('right')">➡️</button>
+	<button onclick="sendKey('select')">✔️ Select</button>
+
+  <div class="grid">
+    <button onclick="sendCommand('volumeUp')">Volume +</button>
+    <button onclick="sendCommand('volumeDown')">Volume -</button>
+    <button onclick="sendCommand('toggleMute')">Mute</button>
+    <button onclick="sendCommand('powerOff')">Power Off</button>
+    <button onclick="sendCommand('launchNetflix')">Netflix</button>
+    <button onclick="sendCommand('launchYoutube')">YouTube</button>
+    <button onclick="sendCommand('launchDisney')">Disney+</button>
+    <button onclick="sendCommand('hdmi1')">HDMI 1</button>
+    <button onclick="sendCommand('back')">Back</button>
+	<button onclick="sendCommand('home')">Home</button>
+	<button onclick="fetchApps()">Show Apps</button>
+	<div id="appList"></div>
+  </div>
+
+  <script>
+  
+	//arrow button functions
+	function sendKey(key) {
+		fetch('/sendCommand/' + key, { method: 'POST' }).then(response => {
+    if (!response.ok) {
+      console.log('Error sending key');
+    }
+  });
+	}
+
+  
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("Service Worker Registered"));
+    }
+
+    function sendCommand(command) {
+      fetch(`/${command}`)
+        .then(response => response.text())
+        //.then(msg => alert(msg))
+        .catch(err => alert("Error: " + err));
+    }
+	
+	function fetchApps() {
+    fetch('/listApps')
+      .then(response => response.json())
+      .then(apps => {
+        const appList = document.getElementById('appList');
+        appList.innerHTML = '<h3>Available Apps:</h3>';
+        
+        apps.forEach(app => {
+          const appButton = document.createElement('button');
+          appButton.textContent = app.title;  // This will show the app name
+          appButton.onclick = () => launchApp(app.id);
+          appList.appendChild(appButton);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching apps:', error);
+        alert('Failed to load apps');
+      });
+  }
+
+  function launchApp(appId) {
+    fetch(`/launchApp/${appId}`)
+      .then(response => response.text())
+      //.then(msg => alert(msg))
+      .catch(err => alert('Error: ' + err));
+  }
+  </script>
+</body>
+</html>
