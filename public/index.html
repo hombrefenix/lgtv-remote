@@ -58,6 +58,10 @@
   </style>
 </head>
 <body>
+  <label for="tv-ip">Enter LG TV IP:</label>
+  <input id="tv-ip" type="text" placeholder="e.g. 192.168.1.123" />
+  <button onclick="saveIp()">Connect</button>
+
   <h1>LG TV Remote</h1>
   <!-- Arrow Buttons -->
 	<button onclick="sendKey('up')">⬆️</button>
@@ -82,7 +86,45 @@
   </div>
 
   <script>
-  
+
+	const ipInput = document.getElementById('tv-ip');
+
+    // Load saved IP from localStorage
+    window.onload = () => {
+      const savedIp = localStorage.getItem('tvIp');
+      if (savedIp) {
+        ipInput.value = savedIp;
+      }
+    };
+
+    function saveIp() {
+      const ip = ipInput.value.trim();
+      if (ip) {
+        localStorage.setItem('tvIp', ip);
+        alert("TV IP saved!");
+      } else {
+        alert("Please enter a valid IP.");
+      }
+    }
+
+    function sendCommand(endpoint) {
+      const ip = localStorage.getItem('tvIp');
+      if (!ip) {
+        alert("Please enter and save your TV IP first.");
+        return;
+      }
+
+      fetch(`http://${ip}:3000/${endpoint}`)
+        .then(res => {
+          if (res.ok) {
+            console.log(`Command ${endpoint} sent successfully`);
+          } else {
+            console.error(`Failed to send ${endpoint}`);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+	  
 	//arrow button functions
 	function sendKey(key) {
 		fetch('/sendCommand/' + key, { method: 'POST' }).then(response => {
