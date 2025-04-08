@@ -16,7 +16,7 @@ const lgtv = require('lgtv2')({
 });
 const app = express();
 const port = 3001;
-
+const clientKey = require('./package-lock.json');
 app.use(express.static('public')); // Serve HTML frontend
 
 lgtv.on('connect', () => console.log('Connected to LG TV'));
