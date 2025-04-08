@@ -1,22 +1,31 @@
-// server.js
-/*const http = require('http');
+const fs = require('fs');
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Hello from my Node.js server!');
-});
+let clientKey;
+try {
+  clientKey = JSON.parse(fs.readFileSync('./clientKey.json'));
+  console.log('Loaded client key ✅');
+} catch (err) {
+  console.log('No client key found. Will request pairing.');
+}
 
-server.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
-});
-*/
-const express = require('express');
 const lgtv = require('lgtv2')({
-  url: 'ws://192.168.1.174:3000' // Replace with your LG TV's IP
+  url: 'ws://192.168.1.174:3000', // just your TV IP
+  clientKey: clientKey?.['client-key'],
+  saveKey: (key, cb) => {
+    fs.writeFile('./clientKey.json', JSON.stringify({ 'client-key': key }), (err) => {
+      if (err) {
+        console.error('Failed to save client key ❌', err);
+      } else {
+        console.log('Client key saved ✅');
+      }
+      cb?.(err);
+    });
+  }
 });
+
+const express = require('express');
 const app = express();
 const port = 3001;
-const clientKey = require('./package-lock.json');
 app.use(express.static('public')); // Serve HTML frontend
 
 lgtv.on('connect', () => console.log('Connected to LG TV'));
